@@ -9,7 +9,8 @@ class Node:
         Node.num = Node.num+1
 
     def addNieghbor(self, n):
-        self.neighbors.append(n)
+        if n not in self.neighbors and n != self:
+            self.neighbors.append(n)
 
     def __str__(self):
         return str(self.name)
