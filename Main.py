@@ -15,22 +15,23 @@ screen = pygame.display.set_mode((sLength, sWidth))
 clock = pygame.time.Clock()
 mouse = pygame.mouse
 
-viewX = 0
-viewY = 0
+viewX = -1 * sLength / 2
+viewY = -1 * sWidth / 2
 viewSpeed = 20
 
-springStrength = 0.1 * 10 ** 0
+springStrength = 0.01 * 10 ** 0
 springLength = 100
 rConst = 3 * 10 ** 4
 fConst = 0.99
 fIncrease = 1 - 1 * 10 ** -5
+centerPull = 0.0
 
 zoom = 0.03
 
 
 nodes = []
 
-ws = nx.watts_strogatz_graph(50, 24, 0.0)
+ws = nx.watts_strogatz_graph(30, 4, 0.0)
 ba = nx.barabasi_albert_graph(100, 1)
 
 adjMatrix = nx.to_numpy_matrix(ws)
@@ -107,6 +108,9 @@ while not done:
             d = math.sqrt(x ** 2 + y ** 2)
             node.vel[0] -= (x / d) * (sLength - d) * springStrength
             node.vel[1] -= (y / d) * (sLength - d) * springStrength
+        # Center pull (Towards 0, 0:
+        node.vel[0] -= node.pos[0] * centerPull
+        node.vel[1] -= node.pos[1] * centerPull
         # Repulsive interactions
         for other in nodes:
             if node != other:
