@@ -19,21 +19,21 @@ viewX = 0
 viewY = 0
 viewSpeed = 20
 
-springStrength = 0.2 * 10 ** 0
+springStrength = 0.1 * 10 ** 0
 springLength = 100
 rConst = 3 * 10 ** 4
 fConst = 0.99
-fIncrease = 1 - 1 * 10 ** -4
+fIncrease = 1 - 1 * 10 ** -5
 
 zoom = 0.03
 
 
 nodes = []
 
-ws = nx.watts_strogatz_graph(200, 4, 0.15)
+ws = nx.watts_strogatz_graph(50, 24, 0.0)
 ba = nx.barabasi_albert_graph(100, 1)
 
-adjMatrix = nx.to_numpy_matrix(ba)
+adjMatrix = nx.to_numpy_matrix(ws)
 for i in range(0, adjMatrix.shape[0]):
     nodes.append(Node([random.randint(-1000, 1000), random.randint(-1000, 1000)]))
 
@@ -59,6 +59,8 @@ for i in range(0, adjMatrix.shape[0]):
     if len(nodes[i].neighbors) < minDeg:
         minDeg = len(nodes[i].neighbors)
 degRange = maxDeg - minDeg
+if degRange == 0:
+    degRange = 1
 
 print([minDeg, maxDeg, degRange])
 
