@@ -102,9 +102,9 @@ def updatePos(nList, f, fI):  # f = Friction constant, fI = Friction increase
         n.pos[1] += n.vel[1]
 
 
-def colorByDegree(mD, dR):  # Minimum degree, degree range
+def colorByDegree(mD, dR, b):  # Minimum degree, degree range, brightness
 
-    color = list(colorsys.hls_to_rgb(0.50 * (1 - ((len(node.neighbors) - mD) / dR)), 0.5, 1))
+    color = list(colorsys.hls_to_rgb(0.50 * (1 - ((len(node.neighbors) - mD) / dR)), b, 1))
     color[0] *= 255
     color[1] *= 255
     color[2] *= 255
@@ -126,7 +126,7 @@ def select(mP, nList, vX, vY, z, s, nS):  # Change selected node mouse position
 
 # Pygame setup
 pygame.init()
-sLength = 1500
+sLength = 1000
 sWidth = 700
 screen = pygame.display.set_mode((sLength, sWidth))
 clock = pygame.time.Clock()
@@ -214,7 +214,10 @@ while not done:
 
     # Draw vertices:
     for node in nodes:
-        color = colorByDegree(minDeg, degRange)
+        if selected == None or selected in node.neighbors:
+            color = colorByDegree(minDeg, degRange, 0.5)
+        else:
+            color = colorByDegree(minDeg, degRange, 0.3)
         pygame.draw.circle(screen, color, [int(zoom * (node.pos[0] + viewX)), int(zoom * (node.pos[1] + viewY))], int(zoom * nodeSize))
 
     # Redraw selected node, and its edges
@@ -223,6 +226,8 @@ while not done:
             start = [int(zoom * (selected.pos[0] + viewX)), int(zoom * (selected.pos[1] + viewY))]
             end = [int(zoom * (neighbor.pos[0] + viewX)), int(zoom * (neighbor.pos[1] + viewY))]
             pygame.draw.line(screen, (255, 255, 255), start, end, edgeWidth * 2)
+            pygame.draw.circle(screen, (255, 255, 255), [int(zoom * (neighbor.pos[0] + viewX)), int(zoom * (neighbor.pos[1] + viewY))],
+                               int(zoom * nodeSize / 2))
         pygame.draw.circle(screen, (255, 255, 255), [int(zoom * (selected.pos[0] + viewX)), int(zoom * (selected.pos[1] + viewY))],
                            int(zoom * nodeSize))
 
