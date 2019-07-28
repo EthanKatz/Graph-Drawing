@@ -20,7 +20,7 @@ def makeGraph(graphType):  # Create a graph using the networkx library, and conv
     # Barabasi-Albert graph
     if graphType == "ba":
         print("Creating a Barabasi-Albert graph")
-        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(100, 1))
+        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(200, 1))
 
     # Erdős-Rényi graph
     if graphType == "er":
@@ -93,9 +93,8 @@ def calcCenterPull(n, c):  # Pull nodes to the center
     n.vel[1] += (c[1] - n.pos[1]) * centerPull
 
 
-def updatePos(nList, f, fI):  # f = Friction constant, fI = Friction increase
+def updatePos(nList, f):  # f = Friction constant, fI = Friction increase
     for n in nList:
-        f *= fI
         n.vel[0] *= f
         n.vel[1] *= f
         n.pos[0] += n.vel[0]
@@ -116,7 +115,7 @@ def select(mP, nList, vX, vY, z, s, nS):  # Change selected node mouse position
     # Parameters are: (nodes list, view x, view y, zoom, selected, node size)
     for n in nList:
         if math.sqrt(((mP[0] - z * (n.pos[0] + vX)) ** 2) + ((mP[1] - z * (n.pos[1] + vY)) ** 2)) < nS * z:
-            if n == selected:
+            if n == s:
                 return None
             else:
                 return n
@@ -128,7 +127,7 @@ def select(mP, nList, vX, vY, z, s, nS):  # Change selected node mouse position
 pygame.init()
 sLength = 1000
 sWidth = 700
-screen = pygame.display.set_mode((sLength, sWidth))
+screen = pygame.display.set_mode((sLength + 300, sWidth))
 clock = pygame.time.Clock()
 mouse = pygame.mouse
 
@@ -151,16 +150,26 @@ fConst = 0.99                    # Friction (Between 1 and 0; 1 is no friction, 
 fIncrease = 1 - 1 * 10 ** -3     # Increase of friction over time (Between 1 and 0; 1 is no slowdown, 0 is no friction)
 centerPull = 0.001               # Pull of each node towards the center
 
-nodes = makeGraph("ws")  # Initialize graph
+# List for user control of physics parameters
+physParams = [
+    {"val": springStrength, "name": "Spring Strength"},
+    {"val": springLength, "name": "Spring Length"},
+    {"val": rConst, "name": "Repulsion Strength"},
+    {"val": fConst, "name": "Friction Constant"},
+    {"val": fIncrease, "name": "Friction Increase"},
+    {"val": centerPull, "name": "Center Pull"},
+]
+for param in physParams:
+    param["color"] = (150, 150, 150)
+
+
+nodes = makeGraph("ba")  # Initialize graph
 
 # Visual preference parameters
 nodeSize = 300
 edgeWidth = 2
 
-# Get degree information
-degInfo = degreeInfo(nodes)
-minDeg = degInfo[0]
-degRange = degInfo[1]
+minDeg, degRange = degreeInfo(nodes)  # Get degree information
 
 selected = None
 
@@ -175,8 +184,13 @@ while not done:
 
         # Mouse input
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            selected = select(mouse.get_pos(), nodes, viewX, viewY, zoom, selected, nodeSize)
-
+            mouseX, mouseY = mouse.get_pos()
+            selected = select((mouseX, mouseY), nodes, viewX, viewY, zoom, selected, nodeSize)
+            i = 0
+            for param in physParams:
+                if 55 + i * 60 < mouseY < 55 + i * 60 + font.size(str(param["val"]))[1]:
+                    selected = param
+                    print(type(selected))
     # Check for keyboard input
     pressed = pygame.key.get_pressed()
 
@@ -201,8 +215,9 @@ while not done:
         calcSpringInteractions(node)                     # Spring interactions
         calcCenterPull(node, [sLength / 2, sWidth / 2])  # Center pull:
         calcRepulsiveInteractions(node, nodes)           # Repulsive interactions
-    updatePos(nodes, fConst, fIncrease)                  # Move nodes based on velocity and friction
-
+    updatePos(nodes, fConst)                  # Move nodes based on velocity and friction
+    fConst *= fIncrease
+    physParams[3]["val"] = fConst
     screen.fill((0, 0, 0))  # Screen color (black)
 
     # Draw edges:
@@ -214,7 +229,7 @@ while not done:
 
     # Draw vertices:
     for node in nodes:
-        if selected == None or selected in node.neighbors:
+        if type(selected) != Node or selected in node.neighbors:
             color = colorByDegree(minDeg, degRange, 0.5)
         else:
             color = colorByDegree(minDeg, degRange, 0.3)
@@ -232,15 +247,12 @@ while not done:
                            int(zoom * nodeSize))
 
     # Draw model parameters (Text)
-    screen.blit(font.render("Spring Strength: " + str(springStrength), False, (255, 255, 255)), (10, 10))
-    """
-    springStrength = 0.05 * 10 ** 0  # Pull of each edge; if exceeds 1, model will certainly break
-    springLength = 100  # Edge resting length
-    rConst = 3 * 10 ** 4  # Push of each node against each other node
-    fConst = 0.99  # Friction (Between 1 and 0; 1 is no friction, 0 is no movement)
-    fIncrease = 1 - 1 * 10 ** -3  # Increase of friction over time (Between 1 and 0; 1 is no slowdown, 0 is no friction)
-    centerPull = 0.001  # Pull of each node towards the center
-    """
+    i = 0
+    for param in physParams:
+        screen.blit(font.render(param["name"] + ": ", False, (255, 255, 255)), (1010, 20 + i * 70))
+        screen.blit(font.render(str(round(param["val"], 5)), False, param["color"]), (1010, 55 + i * 70))
+        i += 1
+
     pygame.display.flip()
     clock.tick(60)  # (60) FPS
 
