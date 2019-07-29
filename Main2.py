@@ -25,7 +25,7 @@ def makeGraph(graphType):  # Create a graph using the networkx library, and conv
     # Erdős-Rényi graph
     if graphType == "er":
         print("Creating an Erdős-Rényi graph")
-        adjMatrix = nx.to_numpy_matrix(nx.erdos_renyi_graph)
+        adjMatrix = nx.to_numpy_matrix(nx.erdos_renyi_graph(100, 0.03))
 
     # Create the right number of nodes, and add them to the list nodes
     for i in range(0, adjMatrix.shape[0]):
@@ -69,14 +69,14 @@ def degreeInfo(nList):
     return [nD, dR]
 
 
-def calcSpringInteractions(n):  # Pull between neighboring nodes
+def calcSpringInteractions(n, sL, sS):  # Pull between neighboring nodes
 
     for neighbor in node.neighbors:
         xDiff = (neighbor.pos[0] - n.pos[0])
         yDiff = (neighbor.pos[1] - n.pos[1])
         d = math.sqrt(xDiff ** 2 + yDiff ** 2)
-        n.vel[0] -= (xDiff / d) * (sLength - d) * springStrength
-        n.vel[1] -= (yDiff / d) * (sLength - d) * springStrength
+        n.vel[0] -= (xDiff / d) * (sL - d) * sS
+        n.vel[1] -= (yDiff / d) * (sL - d) * sS
 
 
 def calcRepulsiveInteractions(n, nList):  # Repulsion between all nodes
@@ -130,8 +130,6 @@ sWidth = 700
 screen = pygame.display.set_mode((sLength + 300, sWidth))
 clock = pygame.time.Clock()
 mouse = pygame.mouse
-
-# Font setup
 pygame.font.init()
 font = pygame.font.SysFont("freesansbold.ttf", 36)
 
@@ -144,10 +142,10 @@ viewSpeed = 20
 
 # Physics model parameters
 springStrength = 0.05 * 10 ** 0  # Pull of each edge; if exceeds 1, model will certainly break
-springLength = 100               # Edge resting length
-rConst = 3 * 10 ** 4             # Push of each node against each other node
-fConst = 0.99                    # Friction (Between 1 and 0; 1 is no friction, 0 is no movement)
-fIncrease = 1 - 1 * 10 ** -3     # Increase of friction over time (Between 1 and 0; 1 is no slowdown, 0 is no friction)
+springLength = 1000              # Edge resting length
+rConst = 5 * 10 ** 4             # Push of each node against each other node
+fConst = 0.95                    # Friction (Between 1 and 0; 1 is no friction, 0 is no movement)
+fIncrease = 1                    # Increase of friction over time (Between 1 and 0; 1 is no slowdown, 0 is no friction)
 centerPull = 0.001               # Pull of each node towards the center
 
 # List for user control of physics parameters
@@ -162,8 +160,9 @@ physParams = [
 for param in physParams:
     param["color"] = (150, 150, 150)
 
+paramInput = ""  # Variable to store user input for editing parameters
 
-nodes = makeGraph("ba")  # Initialize graph
+nodes = makeGraph("ws")  # Initialize graph
 
 # Visual preference parameters
 nodeSize = 300
@@ -184,13 +183,58 @@ while not done:
 
         # Mouse input
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if type(selected) == dict:
+                selected["color"] = (150, 150, 150)
             mouseX, mouseY = mouse.get_pos()
             selected = select((mouseX, mouseY), nodes, viewX, viewY, zoom, selected, nodeSize)
-            i = 0
-            for param in physParams:
-                if 55 + i * 60 < mouseY < 55 + i * 60 + font.size(str(param["val"]))[1]:
-                    selected = param
-                    print(type(selected))
+            for i in range(0, len(physParams)):
+                if 1200 < mouseX < 1200 + font.size("Edit")[0] and \
+                        55 + i * 70 < mouseY < 55 + i * 70 + font.size(str(round(physParams[i]["val"], 5)))[1]:
+                    selected = physParams[i]
+                    physParams[i]["color"] = (0, 255, 0)
+
+        # Keyboard input used for changing parameters
+        if type(selected) == dict and event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_PERIOD:
+                paramInput += "."
+            elif event.key == pygame.K_0:
+                paramInput += "0"
+            elif event.key == pygame.K_1:
+                paramInput += "1"
+            elif event.key == pygame.K_2:
+                paramInput += "2"
+            elif event.key == pygame.K_3:
+                paramInput += "3"
+            elif event.key == pygame.K_4:
+                paramInput += "4"
+            elif event.key == pygame.K_5:
+                paramInput += "5"
+            elif event.key == pygame.K_6:
+                paramInput += "6"
+            elif event.key == pygame.K_7:
+                paramInput += "7"
+            elif event.key == pygame.K_8:
+                paramInput += "8"
+            elif event.key == pygame.K_9:
+                paramInput += "9"
+            if event.key == pygame.K_BACKSPACE:
+                paramInput = paramInput[0: -1]
+            if event.key == pygame.K_RETURN:
+                selected["val"] = float(paramInput)
+                paramInput = ""
+                selected["color"] = (150, 150, 150)
+                selected = None
+                springStrength = float(physParams[0]["val"])
+                springLength = float(physParams[1]["val"])
+                rConst = float(physParams[2]["val"])
+                fConst = float(physParams[3]["val"])
+                fIncrease = float(physParams[4]["val"])
+                centerPull = float(physParams[5]["val"])
+            if event.key == pygame.K_ESCAPE:
+                paramInput = ""
+                selected["color"] = (150, 150, 150)
+                selected = None
+
     # Check for keyboard input
     pressed = pygame.key.get_pressed()
 
@@ -212,7 +256,7 @@ while not done:
         zoom *= 1 - zoomSpeed
 
     for node in nodes:
-        calcSpringInteractions(node)                     # Spring interactions
+        calcSpringInteractions(node, springLength, springStrength)                     # Spring interactions
         calcCenterPull(node, [sLength / 2, sWidth / 2])  # Center pull:
         calcRepulsiveInteractions(node, nodes)           # Repulsive interactions
     updatePos(nodes, fConst)                  # Move nodes based on velocity and friction
@@ -236,7 +280,7 @@ while not done:
         pygame.draw.circle(screen, color, [int(zoom * (node.pos[0] + viewX)), int(zoom * (node.pos[1] + viewY))], int(zoom * nodeSize))
 
     # Redraw selected node, and its edges
-    if selected != None:
+    if type(selected) == Node:
         for neighbor in selected.neighbors:
             start = [int(zoom * (selected.pos[0] + viewX)), int(zoom * (selected.pos[1] + viewY))]
             end = [int(zoom * (neighbor.pos[0] + viewX)), int(zoom * (neighbor.pos[1] + viewY))]
@@ -247,11 +291,17 @@ while not done:
                            int(zoom * nodeSize))
 
     # Draw model parameters (Text)
+    pygame.draw.rect(screen, (0, 0, 0), (1000, 0, 300, 700))
+    pygame.draw.line(screen, (255, 255, 255), (1000, 0), (1000, 700), 2)
+
     i = 0
-    for param in physParams:
-        screen.blit(font.render(param["name"] + ": ", False, (255, 255, 255)), (1010, 20 + i * 70))
-        screen.blit(font.render(str(round(param["val"], 5)), False, param["color"]), (1010, 55 + i * 70))
+    for i in range(0, len(physParams)):
+        screen.blit(font.render(physParams[i]["name"] + ": ", False, (255, 255, 255)), (1010, 20 + i * 70))
+        screen.blit(font.render(str(round(physParams[i]["val"], 5)), False, physParams[i]["color"]), (1010, 55 + i * 70))
+        screen.blit(font.render("Edit", False, physParams[i]["color"]), (1200, 55 + i * 70))
         i += 1
+    if type(selected) == dict:
+        screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (1010, 50 + len(physParams) * 70))
 
     pygame.display.flip()
     clock.tick(60)  # (60) FPS

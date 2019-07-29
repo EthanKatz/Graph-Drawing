@@ -31,8 +31,8 @@ zoom = 0.03
 
 nodes = []
 
-ws = nx.watts_strogatz_graph(30, 4, 0.0)
 ba = nx.barabasi_albert_graph(100, 1)
+ws = nx.watts_strogatz_graph(30, 4, 0.0)
 
 adjMatrix = nx.to_numpy_matrix(ws)
 for i in range(0, adjMatrix.shape[0]):
@@ -148,4 +148,4 @@ while not done:
         # pygame.draw.circle(screen, (0, 200, 255), [int(node.pos[0] + viewX), int(node.pos[1] + viewY)], 10)
 
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(40)
