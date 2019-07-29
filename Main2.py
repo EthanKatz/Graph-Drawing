@@ -20,7 +20,7 @@ def makeGraph(graphType):  # Create a graph using the networkx library, and conv
     # Barabasi-Albert graph
     if graphType == "ba":
         print("Creating a Barabasi-Albert graph")
-        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(200, 1))
+        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(1000, 1))
 
     # Erdős-Rényi graph
     if graphType == "er":
@@ -145,8 +145,8 @@ springStrength = 0.05 * 10 ** 0  # Pull of each edge; if exceeds 1, model will c
 springLength = 1000              # Edge resting length
 rConst = 5 * 10 ** 4             # Push of each node against each other node
 fConst = 0.95                    # Friction (Between 1 and 0; 1 is no friction, 0 is no movement)
-fIncrease = 1                    # Increase of friction over time (Between 1 and 0; 1 is no slowdown, 0 is no friction)
-centerPull = 0.001               # Pull of each node towards the center
+fIncrease = 0.999                # Increase of friction over time (Between 1 and 0; 1 is no slowdown, 0 is no friction)
+centerPull = 0.01                # Pull of each node towards the center
 
 # List for user control of physics parameters
 physParams = [
@@ -162,7 +162,7 @@ for param in physParams:
 
 paramInput = ""  # Variable to store user input for editing parameters
 
-nodes = makeGraph("ws")  # Initialize graph
+nodes = makeGraph("ba")  # Initialize graph
 
 # Visual preference parameters
 nodeSize = 300
@@ -192,7 +192,28 @@ while not done:
                         55 + i * 70 < mouseY < 55 + i * 70 + font.size(str(round(physParams[i]["val"], 5)))[1]:
                     selected = physParams[i]
                     physParams[i]["color"] = (0, 255, 0)
-
+            if 1010 < mouseX < 1010 + font.size("Reconfigure")[0] and \
+                    40 + len(physParams) * 70 < mouseY < 40 + len(physParams) * 70 + font.size("Reconfigure")[1]:
+                print("Reconfiguring...")
+                fConst = 0.95
+                fIncrease = 0.999
+                for node in nodes:
+                    node.notMovingTick = 0
+                    node.vel = [0, 0]
+                    node.pos = [random.randint(-1000, 1000), random.randint(-1000, 1000)]
+            elif 1010 < mouseX < 1010 + font.size("Set")[0] and \
+                    100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Reconfigure")[1]:
+                fConst = 0.0
+                fIncrease = 0.0
+                for node in nodes:
+                    node.notMovingTick = 300
+                    node.vel = [0, 0]
+            elif 1100 < mouseX < 1100 + font.size("Unset")[0] and \
+                    100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Reconfigure")[1]:
+                fConst = 0.80
+                fIncrease = 1
+                for node in nodes:
+                    node.notMovingTick = 0
         # Keyboard input used for changing parameters
         if type(selected) == dict and event.type == pygame.KEYDOWN:
             if event.key == pygame.K_PERIOD:
@@ -256,12 +277,16 @@ while not done:
         zoom *= 1 - zoomSpeed
 
     for node in nodes:
-        calcSpringInteractions(node, springLength, springStrength)                     # Spring interactions
-        calcCenterPull(node, [sLength / 2, sWidth / 2])  # Center pull:
-        calcRepulsiveInteractions(node, nodes)           # Repulsive interactions
+        if node != selected and node.notMovingTick < 300:
+            calcSpringInteractions(node, springLength, springStrength)  # Spring interactions
+            calcCenterPull(node, [sLength / 2, sWidth / 2])  # Center pull:
+            calcRepulsiveInteractions(node, nodes)  # Repulsive interactions
+        if math.sqrt(node.vel[0] ** 2 + node.vel[1] ** 2) < 1000 and node.notMovingTick <= 100:
+            node.notMovingTick += 1
     updatePos(nodes, fConst)                  # Move nodes based on velocity and friction
     fConst *= fIncrease
     physParams[3]["val"] = fConst
+    physParams[4]["val"] = fIncrease
     screen.fill((0, 0, 0))  # Screen color (black)
 
     # Draw edges:
@@ -300,8 +325,11 @@ while not done:
         screen.blit(font.render(str(round(physParams[i]["val"], 5)), False, physParams[i]["color"]), (1010, 55 + i * 70))
         screen.blit(font.render("Edit", False, physParams[i]["color"]), (1200, 55 + i * 70))
         i += 1
+    screen.blit(font.render("Reconfigure", False, (255, 255, 255)), (1010, 40 + len(physParams) * 70))
+    screen.blit(font.render("Set", False, (255, 255, 255)), (1010, 100 + len(physParams) * 70))
+    screen.blit(font.render("Unset", False, (255, 255, 255)), (1100, 100 + len(physParams) * 70))
     if type(selected) == dict:
-        screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (1010, 50 + len(physParams) * 70))
+        screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (1010, 180 + len(physParams) * 70))
 
     pygame.display.flip()
     clock.tick(60)  # (60) FPS
