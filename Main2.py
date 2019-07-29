@@ -20,7 +20,7 @@ def makeGraph(graphType):  # Create a graph using the networkx library, and conv
     # Barabasi-Albert graph
     if graphType == "ba":
         print("Creating a Barabasi-Albert graph")
-        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(1000, 1))
+        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(200, 2))
 
     # Erdős-Rényi graph
     if graphType == "er":
@@ -146,7 +146,7 @@ springLength = 1000              # Edge resting length
 rConst = 5 * 10 ** 4             # Push of each node against each other node
 fConst = 0.95                    # Friction (Between 1 and 0; 1 is no friction, 0 is no movement)
 fIncrease = 0.999                # Increase of friction over time (Between 1 and 0; 1 is no slowdown, 0 is no friction)
-centerPull = 0.01                # Pull of each node towards the center
+centerPull = 0.0001                # Pull of each node towards the center
 
 # List for user control of physics parameters
 physParams = [
@@ -194,7 +194,6 @@ while not done:
                     physParams[i]["color"] = (0, 255, 0)
             if 1010 < mouseX < 1010 + font.size("Reconfigure")[0] and \
                     40 + len(physParams) * 70 < mouseY < 40 + len(physParams) * 70 + font.size("Reconfigure")[1]:
-                print("Reconfiguring...")
                 fConst = 0.95
                 fIncrease = 0.999
                 for node in nodes:
