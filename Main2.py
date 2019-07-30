@@ -6,8 +6,11 @@ import colorsys
 import time
 
 from Node import *
+from Setup import *
 
 
+# Original graph setup function:
+"""
 def makeGraph(graphType):  # Create a graph using the networkx library, and convert it to a list of nodes
 
     nodes = []  # Initialize nodes list; this list is used for all future calculations
@@ -20,7 +23,7 @@ def makeGraph(graphType):  # Create a graph using the networkx library, and conv
     # Barabasi-Albert graph
     if graphType == "ba":
         print("Creating a Barabasi-Albert graph")
-        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(200, 2))
+        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(150, 1))
 
     # Erdős-Rényi graph
     if graphType == "er":
@@ -49,6 +52,7 @@ def makeGraph(graphType):  # Create a graph using the networkx library, and conv
                     i.pos = [random.randint(-1000, 1000), random.randint(-1000, 1000)]
 
     return nodes
+"""
 
 
 def degreeInfo(nList):
@@ -123,6 +127,36 @@ def select(mP, nList, vX, vY, z, s, nS):  # Change selected node mouse position
         return None
 
 
+def getNumberInput(eK):  # Get keyboard input necessary for changing parameters in program. (Function parameter is event key)
+    if eK == pygame.K_PERIOD:
+        return "."
+    elif eK == pygame.K_0:
+        return "0"
+    elif eK == pygame.K_1:
+        return "1"
+    elif eK == pygame.K_2:
+        return "2"
+    elif eK == pygame.K_3:
+        return "3"
+    elif eK == pygame.K_4:
+        return "4"
+    elif eK == pygame.K_5:
+        return "5"
+    elif eK == pygame.K_6:
+        return "6"
+    elif eK == pygame.K_7:
+        return "7"
+    elif eK == pygame.K_8:
+        return "8"
+    elif eK == pygame.K_9:
+        return "9"
+    else:
+        return ""
+
+# Initialize graph
+setup = Setup()
+nodes = setup.getGraph()
+
 # Pygame setup
 pygame.init()
 sLength = 1000
@@ -162,8 +196,6 @@ for param in physParams:
 
 paramInput = ""  # Variable to store user input for editing parameters
 
-nodes = makeGraph("ba")  # Initialize graph
-
 # Visual preference parameters
 nodeSize = 300
 edgeWidth = 2
@@ -171,6 +203,7 @@ edgeWidth = 2
 minDeg, degRange = degreeInfo(nodes)  # Get degree information
 
 selected = None
+lastSelected = None
 
 done = False  # Program termination variable
 
@@ -186,13 +219,16 @@ while not done:
             if type(selected) == dict:
                 selected["color"] = (150, 150, 150)
             mouseX, mouseY = mouse.get_pos()
+            lastSelected = selected
             selected = select((mouseX, mouseY), nodes, viewX, viewY, zoom, selected, nodeSize)
+            if type(selected) == type(lastSelected) == Node:
+                print("Two nodes selected")
             for i in range(0, len(physParams)):
-                if 1200 < mouseX < 1200 + font.size("Edit")[0] and \
+                if sLength + 200 < mouseX < sLength + 200 + font.size("Edit")[0] and \
                         55 + i * 70 < mouseY < 55 + i * 70 + font.size(str(round(physParams[i]["val"], 5)))[1]:
                     selected = physParams[i]
                     physParams[i]["color"] = (0, 255, 0)
-            if 1010 < mouseX < 1010 + font.size("Reconfigure")[0] and \
+            if sLength + 10 < mouseX < sLength + 10 + font.size("Reconfigure")[0] and \
                     40 + len(physParams) * 70 < mouseY < 40 + len(physParams) * 70 + font.size("Reconfigure")[1]:
                 fConst = 0.95
                 fIncrease = 0.999
@@ -200,43 +236,22 @@ while not done:
                     node.notMovingTick = 0
                     node.vel = [0, 0]
                     node.pos = [random.randint(-1000, 1000), random.randint(-1000, 1000)]
-            elif 1010 < mouseX < 1010 + font.size("Set")[0] and \
-                    100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Reconfigure")[1]:
+            elif sLength + 10 < mouseX < sLength + 10 + font.size("Set")[0] and \
+                    100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Set")[1]:
                 fConst = 0.0
                 fIncrease = 0.0
                 for node in nodes:
                     node.notMovingTick = 300
                     node.vel = [0, 0]
             elif 1100 < mouseX < 1100 + font.size("Unset")[0] and \
-                    100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Reconfigure")[1]:
+                    100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Unset")[1]:
                 fConst = 0.80
                 fIncrease = 1
                 for node in nodes:
                     node.notMovingTick = 0
         # Keyboard input used for changing parameters
         if type(selected) == dict and event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_PERIOD:
-                paramInput += "."
-            elif event.key == pygame.K_0:
-                paramInput += "0"
-            elif event.key == pygame.K_1:
-                paramInput += "1"
-            elif event.key == pygame.K_2:
-                paramInput += "2"
-            elif event.key == pygame.K_3:
-                paramInput += "3"
-            elif event.key == pygame.K_4:
-                paramInput += "4"
-            elif event.key == pygame.K_5:
-                paramInput += "5"
-            elif event.key == pygame.K_6:
-                paramInput += "6"
-            elif event.key == pygame.K_7:
-                paramInput += "7"
-            elif event.key == pygame.K_8:
-                paramInput += "8"
-            elif event.key == pygame.K_9:
-                paramInput += "9"
+            paramInput += getNumberInput(event.key)
             if event.key == pygame.K_BACKSPACE:
                 paramInput = paramInput[0: -1]
             if event.key == pygame.K_RETURN:
@@ -257,7 +272,6 @@ while not done:
 
     # Check for keyboard input
     pressed = pygame.key.get_pressed()
-
     if pressed[pygame.K_w]:
         viewY += viewSpeed * (1 / zoom)
     if pressed[pygame.K_s]:
@@ -282,7 +296,7 @@ while not done:
             calcRepulsiveInteractions(node, nodes)  # Repulsive interactions
         if math.sqrt(node.vel[0] ** 2 + node.vel[1] ** 2) < 1000 and node.notMovingTick <= 100:
             node.notMovingTick += 1
-    updatePos(nodes, fConst)                  # Move nodes based on velocity and friction
+    updatePos(nodes, fConst)  # Move nodes based on velocity and friction
     fConst *= fIncrease
     physParams[3]["val"] = fConst
     physParams[4]["val"] = fIncrease
@@ -318,17 +332,15 @@ while not done:
     pygame.draw.rect(screen, (0, 0, 0), (1000, 0, 300, 700))
     pygame.draw.line(screen, (255, 255, 255), (1000, 0), (1000, 700), 2)
 
-    i = 0
     for i in range(0, len(physParams)):
-        screen.blit(font.render(physParams[i]["name"] + ": ", False, (255, 255, 255)), (1010, 20 + i * 70))
-        screen.blit(font.render(str(round(physParams[i]["val"], 5)), False, physParams[i]["color"]), (1010, 55 + i * 70))
-        screen.blit(font.render("Edit", False, physParams[i]["color"]), (1200, 55 + i * 70))
-        i += 1
-    screen.blit(font.render("Reconfigure", False, (255, 255, 255)), (1010, 40 + len(physParams) * 70))
-    screen.blit(font.render("Set", False, (255, 255, 255)), (1010, 100 + len(physParams) * 70))
+        screen.blit(font.render(physParams[i]["name"] + ": ", False, (255, 255, 255)), (sLength + 10, 20 + i * 70))
+        screen.blit(font.render(str(round(physParams[i]["val"], 5)), False, physParams[i]["color"]), (sLength + 10, 55 + i * 70))
+        screen.blit(font.render("Edit", False, physParams[i]["color"]), (sLength + 200, 55 + i * 70))
+    screen.blit(font.render("Reconfigure", False, (255, 255, 255)), (sLength + 10, 40 + len(physParams) * 70))
+    screen.blit(font.render("Set", False, (255, 255, 255)), (sLength + 10, 100 + len(physParams) * 70))
     screen.blit(font.render("Unset", False, (255, 255, 255)), (1100, 100 + len(physParams) * 70))
     if type(selected) == dict:
-        screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (1010, 180 + len(physParams) * 70))
+        screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (sLength + 10, 180 + len(physParams) * 70))
 
     pygame.display.flip()
     clock.tick(60)  # (60) FPS

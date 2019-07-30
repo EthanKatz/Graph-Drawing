@@ -149,3 +149,5 @@ while not done:
 
     pygame.display.flip()
     clock.tick(40)
+
+pygame.quit()
