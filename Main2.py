@@ -277,9 +277,10 @@ while not done:
     if pressed[pygame.K_d]:
         viewX -= viewSpeed * (1 / zoom)
     if pressed[pygame.K_z]:
-        viewX *= 1 - zoomSpeed
-        viewY *= 1 - zoomSpeed
-        zoom *= 1 + zoomSpeed
+        if zoom < 0.5:
+            viewX *= 1 - zoomSpeed
+            viewY *= 1 - zoomSpeed
+            zoom *= 1 + zoomSpeed
     if pressed[pygame.K_c]:
         viewX *= 1 + zoomSpeed
         viewY *= 1 + zoomSpeed
