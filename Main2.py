@@ -203,7 +203,6 @@ edgeWidth = 2
 minDeg, degRange = degreeInfo(nodes)  # Get degree information
 
 selected = None
-lastSelected = None
 
 done = False  # Program termination variable
 
@@ -219,10 +218,7 @@ while not done:
             if type(selected) == dict:
                 selected["color"] = (150, 150, 150)
             mouseX, mouseY = mouse.get_pos()
-            lastSelected = selected
             selected = select((mouseX, mouseY), nodes, viewX, viewY, zoom, selected, nodeSize)
-            if type(selected) == type(lastSelected) == Node:
-                print("Two nodes selected")
             for i in range(0, len(physParams)):
                 if sLength + 200 < mouseX < sLength + 200 + font.size("Edit")[0] and \
                         55 + i * 70 < mouseY < 55 + i * 70 + font.size(str(round(physParams[i]["val"], 5)))[1]:
