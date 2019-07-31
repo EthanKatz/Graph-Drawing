@@ -122,6 +122,8 @@ class Setup():
                         paramInput = ""
                         selected["color"] = (150, 150, 150)
                         selected = None
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    done = True
 
             screen.fill((0, 0, 0))  # Screen color (black)
 

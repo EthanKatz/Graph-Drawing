@@ -161,11 +161,12 @@ nodes = setup.getGraph()
 pygame.init()
 sLength = 1000
 sWidth = 700
-screen = pygame.display.set_mode((sLength + 300, sWidth))
+screen = pygame.display.set_mode((sLength + 450, sWidth))
 clock = pygame.time.Clock()
 mouse = pygame.mouse
 pygame.font.init()
 font = pygame.font.SysFont("freesansbold.ttf", 36)
+smallFont = pygame.font.SysFont("freesansbold.ttf", 24)
 
 # User control parameters
 zoom = 0.03
@@ -220,11 +221,11 @@ while not done:
             mouseX, mouseY = mouse.get_pos()
             selected = select((mouseX, mouseY), nodes, viewX, viewY, zoom, selected, nodeSize)
             for i in range(0, len(physParams)):
-                if sLength + 200 < mouseX < sLength + 200 + font.size("Edit")[0] and \
+                if sLength + 350 < mouseX < sLength + 350 + font.size("Edit")[0] and \
                         55 + i * 70 < mouseY < 55 + i * 70 + font.size(str(round(physParams[i]["val"], 5)))[1]:
                     selected = physParams[i]
                     physParams[i]["color"] = (0, 255, 0)
-            if sLength + 10 < mouseX < sLength + 10 + font.size("Reconfigure")[0] and \
+            if sLength + 160 < mouseX < sLength + 160 + font.size("Reconfigure")[0] and \
                     40 + len(physParams) * 70 < mouseY < 40 + len(physParams) * 70 + font.size("Reconfigure")[1]:
                 fConst = 0.95
                 fIncrease = 0.999
@@ -232,14 +233,14 @@ while not done:
                     node.notMovingTick = 0
                     node.vel = [0, 0]
                     node.pos = [random.randint(-1000, 1000), random.randint(-1000, 1000)]
-            elif sLength + 10 < mouseX < sLength + 10 + font.size("Set")[0] and \
+            elif sLength + 160 < mouseX < sLength + 160 + font.size("Set")[0] and \
                     100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Set")[1]:
                 fConst = 0.0
                 fIncrease = 0.0
                 for node in nodes:
                     node.notMovingTick = 300
                     node.vel = [0, 0]
-            elif 1100 < mouseX < 1100 + font.size("Unset")[0] and \
+            elif 1250 < mouseX < 1250 + font.size("Unset")[0] and \
                     100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Unset")[1]:
                 fConst = 0.80
                 fIncrease = 1
@@ -324,23 +325,36 @@ while not done:
                                int(zoom * nodeSize / 2))
         pygame.draw.circle(screen, (255, 255, 255), [int(zoom * (selected.pos[0] + viewX)), int(zoom * (selected.pos[1] + viewY))],
                            int(zoom * nodeSize))
+    # Draw background for off-screen visiuals:
+    pygame.draw.rect(screen, (0, 0, 0), (1000, 0, 450, 700))
+    pygame.draw.line(screen, (255, 255, 255), (1150, 0), (1150, 700), 2)
 
     # Draw model parameters (Text)
-    pygame.draw.rect(screen, (0, 0, 0), (1000, 0, 300, 700))
-    pygame.draw.line(screen, (255, 255, 255), (1000, 0), (1000, 700), 2)
-
     for i in range(0, len(physParams)):
-        screen.blit(font.render(physParams[i]["name"] + ": ", False, (255, 255, 255)), (sLength + 10, 20 + i * 70))
-        screen.blit(font.render(str(round(physParams[i]["val"], 5)), False, physParams[i]["color"]), (sLength + 10, 55 + i * 70))
-        screen.blit(font.render("Edit", False, physParams[i]["color"]), (sLength + 200, 55 + i * 70))
-    screen.blit(font.render("Reconfigure", False, (255, 255, 255)), (sLength + 10, 40 + len(physParams) * 70))
-    screen.blit(font.render("Set", False, (255, 255, 255)), (sLength + 10, 100 + len(physParams) * 70))
-    screen.blit(font.render("Unset", False, (255, 255, 255)), (1100, 100 + len(physParams) * 70))
+        screen.blit(font.render(physParams[i]["name"] + ": ", False, (255, 255, 255)), (sLength + 160, 20 + i * 70))
+        screen.blit(font.render(str(round(physParams[i]["val"], 5)), False, physParams[i]["color"]), (sLength + 160, 55 + i * 70))
+        screen.blit(font.render("Edit", False, physParams[i]["color"]), (sLength + 350, 55 + i * 70))
+    screen.blit(font.render("Reconfigure", False, (255, 255, 255)), (sLength + 160, 40 + len(physParams) * 70))
+    screen.blit(font.render("Set", False, (255, 255, 255)), (sLength + 160, 100 + len(physParams) * 70))
+    screen.blit(font.render("Unset", False, (255, 255, 255)), (sLength + 250, 100 + len(physParams) * 70))
     if type(selected) == dict:
-        screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (sLength + 10, 180 + len(physParams) * 70))
+        screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (sLength + 160, 180 + len(physParams) * 70))
+
+    # Draw color key
+    screen.blit(font.render("Degree:", False, (255, 255, 255)), (1030, 20))
+    for i in range(0, degRange + 1):
+        rectColor = list(colorsys.hls_to_rgb(0.50 * (1 - (i / degRange)), 0.5, 1))
+        rectColor[0] *= 255
+        rectColor[1] *= 255
+        rectColor[2] *= 255
+
+        pygame.draw.rect(screen, rectColor, (1050, 50 + 600 * i / (degRange + 1), 50, math.ceil(600 / (degRange + 1))))
+        pygame.draw.line(screen, (0, 0, 0), (1050, 50 + 600 * i / (degRange + 1)), (1100, 50 + 600 * i / (degRange + 1)), 3)
+        screen.blit(smallFont.render(str(i + minDeg), False, (255, 255, 255)),
+                    (1110, 50 + 600 * (i + 0.5) / (degRange + 1) - smallFont.size(str(i))[1] / 2))
 
     pygame.display.flip()
-    clock.tick(60)  # (60) FPS
+    clock.tick(45)  # (45) FPS
 
 # Program termination
 # Test
