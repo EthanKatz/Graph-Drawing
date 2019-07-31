@@ -67,8 +67,6 @@ def degreeInfo(nList):
             nD = len(n.neighbors)
 
     dR = xD - nD  # Degree range
-    if dR == 0:
-        dR = 1
 
     return [nD, dR]
 
@@ -107,11 +105,14 @@ def updatePos(nList, f):  # f = Friction constant, fI = Friction increase
 
 def colorByDegree(mD, dR, b):  # Minimum degree, degree range, brightness
 
-    color = list(colorsys.hls_to_rgb(0.50 * (1 - ((len(node.neighbors) - mD) / dR)), b, 1))
-    color[0] *= 255
-    color[1] *= 255
-    color[2] *= 255
-    return tuple(color)
+    if dR == 0:
+        return (0, 230, 255)
+    else:
+        color = list(colorsys.hls_to_rgb(0.50 * (1 - ((len(node.neighbors) - mD) / dR)), b, 1))
+        color[0] *= 255
+        color[1] *= 255
+        color[2] *= 255
+        return tuple(color)
 
 
 def select(mP, nList, vX, vY, z, s, nS):  # Change selected node mouse position
@@ -167,6 +168,7 @@ mouse = pygame.mouse
 pygame.font.init()
 font = pygame.font.SysFont("freesansbold.ttf", 36)
 smallFont = pygame.font.SysFont("freesansbold.ttf", 24)
+pygame.display.set_caption("Graph Visualizer")
 
 # User control parameters
 zoom = 0.03
@@ -283,9 +285,10 @@ while not done:
             viewY *= 1 - zoomSpeed
             zoom *= 1 + zoomSpeed
     if pressed[pygame.K_c]:
-        viewX *= 1 + zoomSpeed
-        viewY *= 1 + zoomSpeed
-        zoom *= 1 - zoomSpeed
+        if zoom > 0.005:
+            viewX *= 1 + zoomSpeed
+            viewY *= 1 + zoomSpeed
+            zoom *= 1 - zoomSpeed
 
     for node in nodes:
         if node != selected and node.notMovingTick < 300:
@@ -294,6 +297,7 @@ while not done:
             calcRepulsiveInteractions(node, nodes)  # Repulsive interactions
         if math.sqrt(node.vel[0] ** 2 + node.vel[1] ** 2) < 1000 and node.notMovingTick <= 100:
             node.notMovingTick += 1
+
     updatePos(nodes, fConst)  # Move nodes based on velocity and friction
     fConst *= fIncrease
     physParams[3]["val"] = fConst
@@ -326,7 +330,7 @@ while not done:
         pygame.draw.circle(screen, (255, 255, 255), [int(zoom * (selected.pos[0] + viewX)), int(zoom * (selected.pos[1] + viewY))],
                            int(zoom * nodeSize))
     # Draw background for off-screen visiuals:
-    pygame.draw.rect(screen, (0, 0, 0), (1000, 0, 450, 700))
+    pygame.draw.rect(screen, (0, 0, 0), (1150, 0, 450, 700))
     pygame.draw.line(screen, (255, 255, 255), (1150, 0), (1150, 700), 2)
 
     # Draw model parameters (Text)
@@ -341,20 +345,21 @@ while not done:
         screen.blit(font.render("New value: " + paramInput, False, (0, 255, 0)), (sLength + 160, 180 + len(physParams) * 70))
 
     # Draw color key
-    screen.blit(font.render("Degree:", False, (255, 255, 255)), (1030, 20))
-    for i in range(0, degRange + 1):
-        rectColor = list(colorsys.hls_to_rgb(0.50 * (1 - (i / degRange)), 0.5, 1))
-        rectColor[0] *= 255
-        rectColor[1] *= 255
-        rectColor[2] *= 255
+    if degRange > 0:
+        screen.blit(font.render("Degree:", False, (255, 255, 255)), (1030, 20))
+        for i in range(0, degRange + 1):
+            rectColor = list(colorsys.hls_to_rgb(0.50 * (1 - (i / degRange)), 0.5, 1))
+            rectColor[0] *= 255
+            rectColor[1] *= 255
+            rectColor[2] *= 255
 
-        pygame.draw.rect(screen, rectColor, (1050, 50 + 600 * i / (degRange + 1), 50, math.ceil(600 / (degRange + 1))))
-        pygame.draw.line(screen, (0, 0, 0), (1050, 50 + 600 * i / (degRange + 1)), (1100, 50 + 600 * i / (degRange + 1)), 3)
-        screen.blit(smallFont.render(str(i + minDeg), False, (255, 255, 255)),
-                    (1110, 50 + 600 * (i + 0.5) / (degRange + 1) - smallFont.size(str(i))[1] / 2))
+            pygame.draw.rect(screen, rectColor, (1050, 50 + 600 * i / (degRange + 1), 50, math.ceil(600 / (degRange + 1))))
+            pygame.draw.line(screen, (0, 0, 0), (1050, 50 + 600 * i / (degRange + 1)), (1100, 50 + 600 * i / (degRange + 1)), 3)
+            screen.blit(smallFont.render(str(i + minDeg), False, (255, 255, 255)),
+                        (1110, 50 + 600 * (i + 0.5) / (degRange + 1) - smallFont.size(str(i))[1] / 2))
 
     pygame.display.flip()
-    clock.tick(45)  # (45) FPS
+    clock.tick(60)  # (60) FPS
 
 # Program termination
 # Test

@@ -10,6 +10,7 @@ clock = pygame.time.Clock()
 mouse = pygame.mouse
 pygame.font.init()
 font = pygame.font.SysFont("freesansbold.ttf", 36)
+pygame.display.set_caption("Setup")
 
 def getNumberInput(eK):  # Get keyboard input necessary for changing parameters in program. (Function parameter is event key)
     if eK == pygame.K_PERIOD:
