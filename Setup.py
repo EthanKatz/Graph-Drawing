@@ -158,7 +158,7 @@ class Setup():
             self.adjMatrix = self.createModel([
             {"name": "Number of nodes", "val": 50},
             {"name": "Number of connections each node has", "val": 4},
-            {"name": "Probability of random edge rearrangement", "val": 0.15},
+            {"name": "Probability of random edge rearrangement", "val": 0.10},
         ], "ws")
         elif self.modelType == "ba":
             self.adjMatrix = self.createModel([
