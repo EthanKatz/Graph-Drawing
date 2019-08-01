@@ -148,10 +148,12 @@ class GraphSetup():
             return nx.to_numpy_matrix(nx.barabasi_albert_graph(int(params[0]["val"]), int(params[1]["val"])))
         elif modelType == "er":
             return nx.to_numpy_matrix(nx.erdos_renyi_graph(int(params[0]["val"]), params[1]["val"]))
+        else:
+            return None
 
     def getGraph(self):
         self.modelType = self.modelSelect()
-        self.adjMatrix = [[]]
+        self.adjMatrix = None
         self.nodes = []
 
         if self.modelType == "ws":
@@ -170,6 +172,9 @@ class GraphSetup():
                 {"name": "Number of nodes", "val": 50},
                 {"name": "Probability of random connection", "val": 0.1}
             ], "er")
+
+        else:
+            return []
 
         # Create the right number of nodes, and add them to the list nodes
         for i in range(0, self.adjMatrix.shape[0]):

@@ -162,9 +162,14 @@ edgeWidth = 2
 
 minDeg, degRange = degreeInfo(nodes)  # Get degree information
 
+outOfBounds = False  # Vertices out of bounds error detector
+
 selected = None
 
-done = False  # Program termination variable
+if len(nodes) == 0:
+    done = True  # Program termination variable
+else:
+    done = False
 
 # Physics model loop:
 while not done:
@@ -192,6 +197,7 @@ while not done:
                     node.notMovingTick = 0
                     node.vel = [0, 0]
                     node.pos = [random.randint(-1000, 1000), random.randint(-1000, 1000)]
+                outOfBounds = False
             elif sLength + 160 < mouseX < sLength + 160 + font.size("Set")[0] and \
                     100 + len(physParams) * 70 < mouseY < 100 + len(physParams) * 70 + font.size("Set")[1]:
                 fConst = 0.0
@@ -207,7 +213,8 @@ while not done:
                     node.notMovingTick = 0
         # Keyboard input used for changing parameters
         if type(selected) == dict and event.type == pygame.KEYDOWN:
-            paramInput += getNumberInput(event.key)
+            if len(paramInput) < 10:
+                paramInput += getNumberInput(event.key)
             if event.key == pygame.K_BACKSPACE:
                 paramInput = paramInput[0: -1]
             if event.key == pygame.K_RETURN:
@@ -247,19 +254,28 @@ while not done:
             viewY *= 1 + zoomSpeed
             zoom *= 1 - zoomSpeed
 
-    for node in nodes:
-        if node != selected and node.notMovingTick < 300:
-            calcSpringInteractions(node, springLength, springStrength)  # Spring interactions
-            calcCenterPull(node, [sLength / 2, sWidth / 2])  # Center pull:
-            calcRepulsiveInteractions(node, nodes)  # Repulsive interactions
-        if math.sqrt(node.vel[0] ** 2 + node.vel[1] ** 2) < 1000 and node.notMovingTick <= 100:
-            node.notMovingTick += 1
-
-    updatePos(nodes, fConst)  # Move nodes based on velocity and friction
-    fConst *= fIncrease
-    physParams[3]["val"] = fConst
-    physParams[4]["val"] = fIncrease
     screen.fill((0, 0, 0))  # Screen color (black)
+
+    # Check for vertices out of bounds (Bounds at 10 ** 5 in both positive and negative directions
+    for node in nodes:
+        if abs(node.pos[0] + node.vel[0]) > 10 ** 8 or abs(node.pos[1] + node.vel[1]) > 10 ** 8:
+            outOfBounds = True
+
+    # Write warning message if nodes exceed positional limits:
+    if outOfBounds:
+        screen.blit(font.render(str("Vertices out of bounds: Adjust parameters and reconfigure"), False, (255, 0, 0)), (25, 25))
+    else:
+        for node in nodes:
+            if node.notMovingTick < 300:
+                calcSpringInteractions(node, springLength, springStrength)  # Spring interactions
+                calcCenterPull(node, [sLength / 2, sWidth / 2])  # Center pull:
+                calcRepulsiveInteractions(node, nodes)  # Repulsive interactions
+            if math.sqrt(node.vel[0] ** 2 + node.vel[1] ** 2) < 1000 and node.notMovingTick <= 100:
+                node.notMovingTick += 1
+        updatePos(nodes, fConst)  # Move nodes based on velocity and friction
+        fConst *= fIncrease
+        physParams[3]["val"] = fConst
+        physParams[4]["val"] = fIncrease
 
     # Draw edges:
     for node in nodes:
@@ -319,4 +335,3 @@ while not done:
     clock.tick(60)  # (60) FPS
 
 # Program termination
-# Test
