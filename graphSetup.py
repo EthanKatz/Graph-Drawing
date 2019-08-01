@@ -38,7 +38,7 @@ def getNumberInput(eK):  # Get keyboard input necessary for changing parameters 
     else:
         return ""
 
-class Setup():
+class GraphSetup():
     def modelSelect(self):
 
         sLength = 700

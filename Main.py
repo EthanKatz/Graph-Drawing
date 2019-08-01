@@ -6,54 +6,10 @@ import colorsys
 import time
 
 from Node import *
-from Setup import *
+from graphSetup import *
 
 
 # Original graph setup function:
-"""
-def makeGraph(graphType):  # Create a graph using the networkx library, and convert it to a list of nodes
-
-    nodes = []  # Initialize nodes list; this list is used for all future calculations
-
-    # Watts-Strogatz graph
-    if graphType == "ws":
-        print("Creating a Watts-Strogatz graph")
-        adjMatrix = nx.to_numpy_matrix(nx.watts_strogatz_graph(100, 6, 0.15))
-
-    # Barabasi-Albert graph
-    if graphType == "ba":
-        print("Creating a Barabasi-Albert graph")
-        adjMatrix = nx.to_numpy_matrix(nx.barabasi_albert_graph(150, 1))
-
-    # Erdős-Rényi graph
-    if graphType == "er":
-        print("Creating an Erdős-Rényi graph")
-        adjMatrix = nx.to_numpy_matrix(nx.erdos_renyi_graph(100, 0.03))
-
-    # Create the right number of nodes, and add them to the list nodes
-    for i in range(0, adjMatrix.shape[0]):
-        nodes.append(Node([random.randint(-1000, 1000), random.randint(-1000, 1000)]))
-
-    # Use the adjacency matrix to set the neighbors of each node
-    for i in range(0, adjMatrix.shape[0]):
-        for j in range(0, adjMatrix.shape[1]):
-            if adjMatrix.item(i, j) != 0:
-                nodes[i].addNieghbor(nodes[j])
-                nodes[j].addNieghbor(nodes[i])
-
-    # Find and recalculate overlap; otherwise, there will be a division by zero error in future calculations
-    overlap = True
-    while overlap:
-        overlap = False
-        for i in nodes:
-            for j in nodes:
-                if i != j and i.pos == j.pos:
-                    overlap = True
-                    i.pos = [random.randint(-1000, 1000), random.randint(-1000, 1000)]
-
-    return nodes
-"""
-
 
 def degreeInfo(nList):
 
@@ -156,8 +112,8 @@ def getNumberInput(eK):  # Get keyboard input necessary for changing parameters 
 
 
 # Initialize graph
-setup = Setup()
-nodes = setup.getGraph()
+graphSetup = GraphSetup()
+nodes = graphSetup.getGraph()
 
 # Pygame setup
 pygame.init()
