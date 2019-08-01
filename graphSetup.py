@@ -42,7 +42,7 @@ class GraphSetup():
     def modelSelect(self):
 
         sLength = 700
-        sWidth = 300
+        sWidth = 400
 
         screen = pygame.display.set_mode((sLength, sWidth))
 
@@ -70,6 +70,9 @@ class GraphSetup():
             screen.blit(font.render("Watts-Strogatz", False, (255, 255, 255)), (20, 85))
             screen.blit(font.render("Barabasi-Albert", False, (255, 255, 255)), (20, 145))
             screen.blit(font.render("Erdős-Rényi", False, (255, 255, 255)), (20, 205))
+
+            screen.blit(font.render("Created by Ethan Katz", False, (255, 255, 255)), (20, sWidth - 85))
+            screen.blit(font.render("Contributions by Isaac Hoffman", False, (255, 255, 255)), (20, sWidth - 45))
 
             pygame.display.flip()
             clock.tick(60)  # (60) FPS
